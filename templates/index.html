@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stonks App</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: url('static/bg_mountain.jpg') no-repeat center center/cover;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 60px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: #fff;
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+        }
+
+        .login-box button {
+            background-color: rgb(19, 100, 187);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-box button:hover {
+            background-color: #0a55a4;
+            color: rgb(236, 247, 255)
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>Welcome!</h1>
+        <button onclick="window.location.href='{{ login_url }}'">Login with Zerodha</button>
+        <p href="/logout" style="font-size: 0.65em; color: rgb(227, 235, 244); margin-top: 8px;">Click login to continue</p>
+        <!-- <a href="/logout" style="display: inline-block; margin-top: 20px; font-size: 0.8em; color: #cce8ff; text-decoration: underline;">
+            Logout
+        </a> -->
+    </div>
+</body>
+</html>

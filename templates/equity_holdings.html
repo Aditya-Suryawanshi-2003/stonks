@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .metric-card { transition: all 0.3s ease; }
+    .metric-card:hover { transform: scale(1.05); }
+  </style>
+</head>
+<body class="bg-white font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-1/5 bg-sky-100 p-4 flex flex-col justify-between h-full" >
+        <div class="flex-grow">
+            <h1 class="text-2xl font-bold mb-6">Welcome, {{ user_shortname }}!</h1>
+        <ul>
+            <li class="p-2 hover:bg-gray-300 rounded">
+            <a href="/login">Home</a>
+            </li>
+            <li class="p-2 bg-blue-500 text-white rounded">
+                <a href="/equity">Equity Holdings</a>
+                </li>
+            <li class="p-2 hover:bg-gray-300 rounded">
+            <a href="/mf">Mutual Fund Holdings</a>
+            </li>
+        </ul>
+       </div>
+      <!-- Logout Button at bottom -->
+    <div>
+        <a href="/logout" 
+        class="block w-full text-center p-2 mt-4 bg-red-500 hover:bg-red-600 text-white rounded cursor-pointer">
+        Logout
+        </a>
+    </div>
+    </div>
+<!-- </div> -->
+
+    <!-- Main Content -->
+    <div class="w-4/5 p-6">
+      
+      <h3 class="text-xl font-semibold mb-4 text-gray-700 border-b border-gray-300 pb-2">Equity</h3>
+      <!-- Key Metrics Cards -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">Total Invested</h3>
+          <p class="text-lg font-semibold">{{ metrics.total_invested | default('0.00') | rupee_format }}</p>
+        </div>
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">Current Value</h3>
+          <p class="text-lg font-semibold">{{ metrics.current_value | default('0.00') | rupee_format }}</p>
+        </div>
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">Returns</h3>
+          <p class="text-lg font-semibold"  style="color: {{ 'green' if ((metrics.returns)) >= 0 else 'red' }}">{{ metrics.returns | default('0.00') }}%</p>
+        </div>
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">XIRR</h3>
+          <p class="text-lg font-semibold">{{ metrics.xirr | default('0.00') }}%</p>
+        </div>
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">Alpha</h3>
+          <p class="text-lg font-semibold">{{ metrics.alpha | default('0.00') }}%</p>
+        </div>
+        <div class="metric-card bg-white p-4 rounded shadow">
+          <h3 class="text-sm text-gray-500">Beta</h3>
+          <p class="text-lg font-semibold">{{ metrics.beta | default('0.00') }}</p>
+        </div>
+      </div>
+
+      <!-- Holdings Table -->
+      <div class="bg-white rounded shadow overflow-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="p-3">Symbol</th>
+              <th class="p-3 text-right">Quantity</th>
+              <th class="p-3 text-right">Avg. Price (₹)</th>
+              <th class="p-3 text-right">Current Price (₹)</th>
+              <th class="p-3 text-right">Invested (₹)</th>
+              <th class="p-3 text-right">Current Value (₹)</th>
+              <th class="p-3 text-right">P&L (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for holding in holdings %}
+              <tr class="border-t">
+                <td class="p-3">{{ holding.tradingsymbol }}</td>
+                <td class="p-3 text-right">{{ holding.quantity }}</td>
+                <td class="p-3 text-right">{{ holding.average_price | round(2) }}</td>
+                <td class="p-3 text-right">{{ holding.last_price | round(2) }}</td>
+                <td class="p-3 text-right">{{ (holding.quantity * holding.average_price) | default('0.00') | indian_comma_format }}</td>
+                <td class="p-3 text-right">{{ (holding.quantity * holding.last_price) | default('0.00') | indian_comma_format }}</td>
+                <td class="p-3 text-right" style="color: {{ 'green' if ((holding.quantity * holding.last_price) - (holding.quantity * holding.average_price)) >= 0 else 'red' }}">
+                  {{ ((((holding.quantity * holding.last_price) - (holding.quantity * holding.average_price)) / (holding.quantity * holding.average_price)) * 100) | round(2) }}%
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

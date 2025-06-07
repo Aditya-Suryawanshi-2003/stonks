@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logging Out...</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: url('/static/bg_mountain.jpg') no-repeat center center/cover;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            width: 227px;
+            height: 191px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-size: 1.5em;
+            overflow: hidden;
+            padding: 40px;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            position: absolute;
+            top: 82px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+        }
+
+        .fade-in h1 {
+            font-size: 1.35em;
+            margin: 0;
+        }
+
+        .fade-in.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="box">
+        <div id="login-content" class="fade-in">
+            <h1>Welcome!</h1>
+        </div>
+    </div>
+
+    <script>
+        const loginContent = document.getElementById("login-content");
+
+        // Fade in the welcome message
+        setTimeout(() => {
+            loginContent.classList.add("show");
+        }, 100);
+
+        // Redirect quickly after fade-in starts
+        setTimeout(() => {
+            window.location.href = "/";
+        }, 1000);
+    </script>
+</body>
+</html>
