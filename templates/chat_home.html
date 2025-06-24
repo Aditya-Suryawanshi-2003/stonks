@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .metric-card { transition: all 0.3s ease; }
+    .metric-card:hover { transform: scale(1.03); }
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-box::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+    .chat-box {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-white font-sans">
+  <div class="flex h-screen">
+
+    <!-- Sidebar -->
+    <div class="w-1/5 bg-sky-100 p-4 flex flex-col justify-between h-full">
+      <div class="flex-grow">
+        <h1 class="text-2xl font-bold mb-6">Welcome, {{ user_shortname }}!</h1>
+        <ul>
+          <li class="p-2 hover:bg-gray-300 rounded"><a href="/login">Home</a></li>
+          <li class="p-2 hover:bg-gray-300 rounded"><a href="/equity">Equity Holdings</a></li>
+          <li class="p-2 hover:bg-gray-300 rounded"><a href="/mf">Mutual Fund Holdings</a></li>
+          <li class="p-2 bg-blue-500 text-white rounded"><a href="/chat">Chat Agent</a></li>
+        </ul>
+      </div>
+      <!-- Logout Button -->
+      <div>
+        <a href="/logout" class="block w-full text-center p-2 mt-4 bg-red-500 hover:bg-red-600 text-white rounded cursor-pointer">
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="w-4/5 p-6 flex flex-col">
+      <!-- Header -->
+      <h2 class="text-2xl font-semibold text-gray-700 border-b pb-3 mb-4">Chat ({{MODEL_NAME}})</h2>
+
+      <!-- Chat Box -->
+      <div id="chat-box" class="chat-box flex-grow overflow-y-auto max-h-[70vh] space-y-4 p-4 bg-gray-50 rounded shadow-inner mb-4">
+        <!-- Static Example Messages -->
+        <div class="flex">
+          <div class="bg-gray-200 p-3 rounded-lg max-w-lg text-gray-800 shadow">
+            Hello! How can I help you today?
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <div class="bg-blue-500 text-white p-3 rounded-lg max-w-lg shadow">
+            Show me my latest equity returns.
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Form -->
+      <form id="chat-form" class="flex items-center gap-4" onsubmit="return false;">
+        <input
+          id="chat-input"
+          type="text"
+          placeholder="Type your message..."
+          class="flex-grow p-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          type="submit"
+          class="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition">
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("chat-form");
+      const input = document.getElementById("chat-input");
+      const chatBox = document.getElementById("chat-box");
+    
+      // Handle Enter key press
+      input.addEventListener("keydown", async (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          await handleSubmit();
+        }
+      });
+    
+      // Handle send button click
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await handleSubmit();
+      });
+    
+      async function handleSubmit() {
+        const prompt = input.value.trim();
+        if (!prompt) return;
+    
+        // Append user's message
+        const userMsg = document.createElement("div");
+        userMsg.className = "flex justify-end";
+        userMsg.innerHTML = `
+          <div class="bg-blue-500 text-white p-3 rounded-lg max-w-lg shadow">
+            ${prompt}
+          </div>`;
+        chatBox.appendChild(userMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    
+        input.value = "";
+    
+        // Append empty bot response container
+        const botMsgContainer = document.createElement("div");
+        botMsgContainer.className = "flex";
+        const botMsg = document.createElement("div");
+        botMsg.className = "bg-gray-200 p-3 rounded-lg max-w-lg text-gray-800 shadow";
+        botMsg.textContent = "";
+        botMsgContainer.appendChild(botMsg);
+        chatBox.appendChild(botMsgContainer);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    
+        try {
+          const response = await fetch("/chat/stream", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt }),
+          });
+    
+          if (!response.ok) {
+            botMsg.textContent = "[Error] Failed to connect to server.";
+            return;
+          }
+    
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let done = false;
+    
+          while (!done) {
+            const { value, done: readerDone } = await reader.read();
+            done = readerDone;
+            if (value) {
+              const chunk = decoder.decode(value, { stream: true });
+              botMsg.textContent += chunk;
+              chatBox.scrollTop = chatBox.scrollHeight;
+              console.log("Chunk received:", chunk); // Debug log
+            }
+          }
+        } catch (error) {
+          botMsg.textContent = "[Error] " + error.message;
+        }
+      }
+    });
+    </script>
+    
+</body>
+</html>

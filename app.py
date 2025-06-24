@@ -1,15 +1,16 @@
 import os
 from dotenv import load_dotenv
 import logging
+import threading
 from datetime import date, datetime
 from decimal import Decimal
-import json
 from utils import rupee_format, indian_comma_format
+import time
 
-from flask import Flask, request, jsonify, session, render_template
+from flask import Flask, request, jsonify, session, render_template, Response, stream_with_context
 from kiteconnect import KiteConnect
-import uvicorn
 from jinja2 import Environment, FileSystemLoader
+from engine.ollama import OllamaEngine
 
 # Set up basic logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -22,8 +23,10 @@ env = Environment(loader=FileSystemLoader("templates"))
 # Base settings
 PORT = 8000
 HOST = "127.0.0.1"
+CHAT_MODEL = "llama3.2:3b"
+# CHAT_MODEL = "gemma3:12b-it-qat"
 
-def serializer(obj): return isinstance(obj, (date, datetime, Decimal)) and str(obj)  # noqa
+# def serializer(obj): return isinstance(obj, (date, datetime, Decimal)) and str(obj)  # noqa
 
 # Access variables
 KITE_API_KEY = os.getenv("API_KEY")
@@ -41,6 +44,10 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.jinja_env.filters['rupee_format'] = rupee_format
 app.jinja_env.filters['indian_comma_format'] = indian_comma_format
+
+# Ollama engine definition
+ai_agent = OllamaEngine(model_name=CHAT_MODEL)
+
 
 # index_template = """
 #     <div>Make sure your app with api_key - <b>{api_key}</b> has set redirect to <b>{redirect_url}</b>.</div>
@@ -73,6 +80,7 @@ def index():
 
 @app.route("/login")
 def login():
+
     if "access_token" in session:
         kite = get_kite_client()
         profile = kite.profile()
@@ -164,16 +172,42 @@ def mf():
     # Render the equity.html template with holdings and metrics
     return render_template('mf_holdings.html', mf_holdings=mf_holdings, metrics_mf=metrics_mf, user_shortname=profile["user_shortname"])
 
-# @app.route("/logout")
-# def logout():
-#     session.clear()  # Clears all session data
-#     return """
-#         <h3 style='color: red'>Logged out successfully.</h3>
-#         <a href='/'>Back to login</a>
-#     """
+@app.route("/chat")
+def chat():
+    if "access_token" in session:
+        kite = get_kite_client()
+        profile = kite.profile()
+
+    return render_template('chat_home.html', user_shortname=profile["user_shortname"], MODEL_NAME=CHAT_MODEL)
+    # return render_template('chat_home.html', user_shortname="Aditya", MODEL_NAME=CHAT_MODEL)
+
+
+@app.route("/chat/stream", methods=["POST"])
+def chat_stream():
+
+    data = request.get_json()
+
+    # Validate request
+    if not data or "prompt" not in data:
+        return Response("Invalid request: missing prompt.", status=400)
+    
+    prompt = request.json.get('prompt')
+
+    def generate():
+        for token in ai_agent.stream_ollama_response(prompt):
+            # print("Streamed:", token, flush=True)  # <== Force flush for real-time logging
+            yield token
+    
+    # def generate():
+    #     for word in ["Hello", ",", " world", "!"]:
+    #         time.sleep(0.2)
+    #         yield word
+
+    return Response(stream_with_context(generate()), mimetype='text/plain')
 
 @app.route("/logout")
 def logout():
+    ai_agent.stop_ollama_model()
     session.clear()
     return render_template('logout.html')
 
@@ -268,5 +302,6 @@ def calculate_metrics_mf(mf_holdings):
 
 
 if __name__ == "__main__":
+    threading.Thread(target=ai_agent.launch_model).start()
     logging.info("Starting server: http://{host}:{port}".format(host=HOST, port=PORT))
     app.run(host=HOST, port=PORT, debug=True)
