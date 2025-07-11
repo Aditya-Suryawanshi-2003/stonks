@@ -23,8 +23,8 @@ env = Environment(loader=FileSystemLoader("templates"))
 # Base settings
 PORT = 8000
 HOST = "127.0.0.1"
-CHAT_MODEL = "llama3.2:3b"
-# CHAT_MODEL = "gemma3:12b-it-qat"
+# CHAT_MODEL = "llama3.2:3b"
+CHAT_MODEL = "gemma3:12b-it-qat"
 
 # def serializer(obj): return isinstance(obj, (date, datetime, Decimal)) and str(obj)  # noqa
 
@@ -174,12 +174,12 @@ def mf():
 
 @app.route("/chat")
 def chat():
-    if "access_token" in session:
-        kite = get_kite_client()
-        profile = kite.profile()
+    # if "access_token" in session:
+    #     kite = get_kite_client()
+    #     profile = kite.profile()
 
-    return render_template('chat_home.html', user_shortname=profile["user_shortname"], MODEL_NAME=CHAT_MODEL)
-    # return render_template('chat_home.html', user_shortname="Aditya", MODEL_NAME=CHAT_MODEL)
+    # return render_template('chat_home.html', user_shortname=profile["user_shortname"], MODEL_NAME=CHAT_MODEL)
+    return render_template('chat_home.html', user_shortname="Aditya", MODEL_NAME=CHAT_MODEL)
 
 
 @app.route("/chat/stream", methods=["POST"])

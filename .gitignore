@@ -199,3 +199,4 @@ my_portfolio/
 stonks_env/
 __pycache__/
 .DS_Store
+data/
