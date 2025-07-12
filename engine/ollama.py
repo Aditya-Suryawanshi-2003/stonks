@@ -33,7 +33,7 @@ class OllamaEngine:
         self.embedding_model = OllamaEmbeddings(model=self.embedding_model_name)
         self._initialize_vectorstore()
 
-        self.context = "You're a desi hood rapper with low IQ, extermely cultures and street smart. You usually answer very non-challantly."
+        self.context = "You're a desi hood rapper with high IQ, extermely cultures and street smart. You usually answer very non-challantly."
         
         # self.context=context
 
@@ -111,6 +111,7 @@ class OllamaEngine:
                 stream=True,
                 timeout=60
             )
+            
             response.raise_for_status()
             
             self.context += "\nAssistant: "

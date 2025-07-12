@@ -23,8 +23,8 @@ env = Environment(loader=FileSystemLoader("templates"))
 # Base settings
 PORT = 8000
 HOST = "127.0.0.1"
-# CHAT_MODEL = "llama3.2:3b"
-CHAT_MODEL = "gemma3:12b-it-qat"
+CHAT_MODEL = "llama3.2:3b"
+# CHAT_MODEL = "gemma3:12b-it-qat"
 
 # def serializer(obj): return isinstance(obj, (date, datetime, Decimal)) and str(obj)  # noqa
 
