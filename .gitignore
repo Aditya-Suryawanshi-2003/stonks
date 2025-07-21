@@ -139,6 +139,7 @@ celerybeat.pid
 .envrc
 .venv
 **env/
+kite_env/
 venv/
 ENV/
 env.bak/
