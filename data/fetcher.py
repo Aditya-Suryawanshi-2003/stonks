@@ -7,6 +7,27 @@ from typing import List, Dict, Optional
 
 # Placeholder for DB/API connection imports
 
+class AuthData:
+
+    def __init__(self, 
+                 kc_instance: object):
+        self.init_aleert = 'obj_created'
+        self.kc_instance = kc_instance
+    
+    def test_fetchprofile(self):
+
+        return self.kc_instance.profile()
+    
+    def test_fetchorders(self):
+
+        return self.kc_instance.orders()
+    
+    def test_fetchholdings(self):
+
+        return self.kc_instance.holdings()
+        
+
+
 class DataFetcher:
     """Fetches asset and portfolio strategy data for dashboards and analysis."""
 

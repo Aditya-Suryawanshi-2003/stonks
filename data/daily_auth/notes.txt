@@ -1,0 +1,3 @@
+Open points
+ - sesisons saved to local files. move to some cache db.
+  - (stonks) C:\Machine Learning\stonks\data\daily_auth>uv run trigger.py # to start auth
