@@ -87,19 +87,8 @@ async def daily_auth_route_handler(request: Request):
             else:
                 logger.info("valid access token, reidrect to /frontpage")
                 # since access_token is valid, initiate the callbacks to store data here
-                # kc_instance = KiteConnect(api_key=kiteapikey)
-                # kc_instance.set_access_token(access_token)
-
-                # data_fetcher = fetcher.FRONTPAGEDATA(kc_instance=kc_instance)
-                # params = {
-                #     "query": "SELECT timestamp, symbol, price FROM trades limit 5;",  # Replace with your query
-                #     "fmt": "json"   # You can also use "csv"
-                # }
-
-                # some_data = data_fetcher.test_questdb(url=req_conn_url, params=params)
-                # logger.info(f"data fethed: {some_data}")
                 # Redirect to /frontpage route instead of returning HTMLResponse here
-                return RedirectResponse(url="/frontpage", status_code=302)
+                return RedirectResponse(url="/data_fetch", status_code=302)
                 # return HTMLResponse(status_code=200, content="<html><body>New Data Fetched! Try going to /frontpage</body></html>")
 
                 # since access_token is valid, initiate the callbacks to store data here
@@ -124,7 +113,7 @@ async def daily_auth_route_handler(request: Request):
             save_session_to_file.save(data, session_file_name)
             
             # return PlainTextResponse("request token exchanged with access_token, and saved")
-            return RedirectResponse(url=f"/frontpage?message={"new_token_message"}", status_code=303)
+            return RedirectResponse(url="/data_fetch", status_code=303)
             # return HTMLResponse(status_code=200, content="<html><body>New Access Token Available! Try going to /frontpage</body></html>")
         except Exception as e:
             return HTMLResponse(status_code=400, content=f"<html><body>Error: {e}</body></html>")
@@ -136,7 +125,7 @@ async def daily_auth_route_handler(request: Request):
         return HTMLResponse(status_code=200, content=f"<html><body>New Access Since: {loaded_session['timestamp']} </body></html>")
 
 
-@app.get("/frontpage")
+@app.get("/data_fetch")
 async def frontpage():
 
     loaded_session = load_session_from_file.get_file(session_file_name)
@@ -180,7 +169,7 @@ async def frontpage():
         some_data = data_fetch.test_questdb(url=req_conn_url, params=params)
 
         # print(some_data)
-        return PlainTextResponse(f"here is some response and data: {some_data}")
+        return PlainTextResponse(f"data fetched: {some_data}")
         # return RedirectResponse(url=f"/frontpage?message={"new_token_message"}", 
         #                                                 status_code=303)
         # return HTMLResponse(status_code=200,
