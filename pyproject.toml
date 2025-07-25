@@ -83,6 +83,8 @@ dependencies = [
     "cowsay>=6.1",
     "pyotp>=2.9.0",
     "fastapi>=0.116.1",
+    "psycopg[binary]>=3.2.9",
+    "questdb[dataframe]>=3.0.0",
 ]
 
 # Optional dependencies for development, testing, etc.

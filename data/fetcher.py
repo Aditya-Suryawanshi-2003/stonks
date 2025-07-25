@@ -3,7 +3,18 @@ data/fetcher.py
 Responsible for fetching asset and strategy data from database or external APIs.
 """
 
+
+
+
+import os, sys
 from typing import List, Dict, Optional
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+
+from data import db
 
 # Placeholder for DB/API connection imports
 
@@ -25,6 +36,23 @@ class AuthData:
     def test_fetchholdings(self):
 
         return self.kc_instance.holdings()
+
+class FRONTPAGEDATA:
+
+    def __init__(self, kc_instance: object):
+        self.init_alert = 'obj_init'
+        self.kc_instance = kc_instance
+
+    def test_kiteapi_call_holdings(self):
+        holdings = self.kc_instance.holdings()
+        return holdings
+    
+    def test_questdb(self, sql = None, db_con = None, url = None, params = None):
+        # data = db.read_questdb(conn_str = db_con, sql = sql)
+        data = db.read_questdb_req(url, params)
+        
+        return data
+
         
 
 
@@ -70,3 +98,30 @@ class DataFetcher:
             'fundamentals': {},   # Company/ETF fundamentals
             'metadata': {},       # Sector, exchange, etc.
         }
+
+
+
+if __name__ == "__main__":
+
+    import requests
+    import json
+
+    sql_query = "SELECT timestamp, symbol FROM trades;"
+
+    # Set the QuestDB HTTP endpoint
+    url = "http://localhost:9000/exec"
+
+    # Provide the query parameters
+    params = {
+        "query": sql_query,
+        "fmt": "json"   # You can also use "csv"
+    }
+
+    # Send GET request
+    response = requests.get(url, params=params)
+
+    # Parse JSON response
+    data = response.json()
+    print(json.dumps(data, indent=2))
+
+    pass

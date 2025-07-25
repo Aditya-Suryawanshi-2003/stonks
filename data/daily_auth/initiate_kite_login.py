@@ -3,6 +3,7 @@ import datetime
 import os
 import logging
 import sys
+import webbrowser
 
 
 
@@ -19,7 +20,10 @@ from fastapi.responses import RedirectResponse
 from fastapi import HTTPException
 import logging
 from kiteconnect import KiteConnect
+import pyotp
+import config
 
+totpsecret = config.CONFIG_AUTH.KITE_TOTP_SECRET
 
 # Assume global_kc_instance (global KiteConnect object) and REDIRECT_URI (global string)
 # are defined and accessible in the scope where this function is placed.
@@ -27,9 +31,14 @@ from kiteconnect import KiteConnect
 
 async def initiate(kc_instance: object) -> RedirectResponse:
     """Generates the Kite login URL and returns a redirect response."""
+    logger.info("initiating login with OTP!..")
+    totp = pyotp.TOTP(totpsecret)
+    otp = totp.now()
+    print(f"OTP!: {otp}")
     try:
         login_url = kc_instance.login_url()
         logger.info(f"Redirecting to Kite login URL: {login_url}")
+        webbrowser.open(login_url)
         return RedirectResponse(url=login_url)
     except Exception as e:
         logger.error(f"Error generating login URL: {e}", exc_info=True)

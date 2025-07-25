@@ -1,3 +1,7 @@
 Open points
  - sesisons saved to local files. move to some cache db.
   - (stonks) C:\Machine Learning\stonks\data\daily_auth>uv run trigger.py # to start auth
+
+To Remember:
+ - Start sessions_access_token to have a dummy access_token json. 
+ Add a dummy json object if you have to create this file in trigger.py
