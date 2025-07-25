@@ -25,17 +25,14 @@ class AuthData:
         self.init_aleert = 'obj_created'
         self.kc_instance = kc_instance
     
-    def test_fetchprofile(self):
+    def test_fetchdaily(self):
 
-        return self.kc_instance.profile()
-    
-    def test_fetchorders(self):
+        profile = self.kc_instance.profile()
+        holdings = self.kc_instance.holdings()
+        orders = self.kc_instance.orders()
+        all_instruments = self.kc_instance.instruments()
 
-        return self.kc_instance.orders()
-    
-    def test_fetchholdings(self):
-
-        return self.kc_instance.holdings()
+        return profile
 
 class FRONTPAGEDATA:
 

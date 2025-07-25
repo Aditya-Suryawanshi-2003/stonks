@@ -155,18 +155,19 @@ async def frontpage():
         frontpage_kc_instance = KiteConnect(api_key=kiteapikey)
         frontpage_kc_instance.set_access_token(access_token)
 
-        data_fetch = fetcher.FRONTPAGEDATA(kc_instance=frontpage_kc_instance)
+        data_fetch = fetcher.AuthData(kc_instance=frontpage_kc_instance)
+        some_data = data_fetch.test_fetchdaily()
 
-        # sql = "select * from xyz;"
-        sql_query = "SELECT timestamp, symbol, price FROM trades limit 5;"
+        # # sql = "select * from xyz;"
+        # sql_query = "SELECT timestamp, symbol, price FROM trades limit 5;"
 
-        # Provide the query parameters
-        params = {
-            "query": sql_query,
-            "fmt": "json"   # You can also use "csv"
-        }
+        # # Provide the query parameters
+        # params = {
+        #     "query": sql_query,
+        #     "fmt": "json"   # You can also use "csv"
+        # }
 
-        some_data = data_fetch.test_questdb(url=req_conn_url, params=params)
+        # some_data = data_fetch.test_questdb(url=req_conn_url, params=params)
 
         # print(some_data)
         return PlainTextResponse(f"data fetched: {some_data}")
