@@ -104,11 +104,11 @@ if __name__ == "__main__":
         print(f"sent to: {response.url};")
         # print(f"response text/content if exists: {response.content}")
         print(f"headers: {response.headers.get('message')}")
-        print(f"complete auth with OTP in 120s. Server cloases after 120s")
+        print(f"complete auth with OTP in 4000s. Server cloases after 4000s")
 
 
-        print("waiting 120s to terminate")
-        time.sleep(120)
+        print("waiting 4000s to terminate")
+        time.sleep(4000)
         server_proc.terminate()
         time.sleep(5)
         print("terminated..")

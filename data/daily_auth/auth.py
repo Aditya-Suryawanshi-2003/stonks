@@ -170,7 +170,7 @@ async def daily_auth_route_handler(request: Request):
                 del_resp = db.del_questdb_req(delsql_query="TRUNCATE TABLE market_daily;") # testing...
                 logger.info(f"delete rows donw: {del_resp}")
                 
-                info, error_symbols = data_fetch.test_nsepy_quotes(all_nse_eq[:15])
+                info, error_symbols = data_fetch.test_nsepy_quotes(all_nse_eq[:250])
                 info_df = pd.DataFrame(info)
                 info_df['timestamp'] = pd.to_datetime(info_df['timestamp'])
                 info_df['close'] = pd.to_numeric(info_df['close'], errors='coerce').astype(float)
@@ -228,13 +228,17 @@ async def frontpage():
     data_fetcher = fetcher.FRONTPAGEDATA()
     holdings_data = data_fetcher.fetch_holdings()
     market_data_info = data_fetcher.fetch_market()
+    latest_data = data_fetcher.latest_data()
 
 
 
     df_data_html_holdings = holdings_data.to_html(index=False)
     df_data_html_market = market_data_info.to_html(index=False)
+    latest_data_html = latest_data.to_html(index=False)
+
     html_content = f"""<h3>this is static data</h3>
     <div style='text-align:center; margin-right:auto; width:25%;'><center>{df_data_html_market}</center></div>
+    <div style='text-align:center; margin-right:auto; width:25%;'><center>{latest_data_html}</center></div>
     <div style='text-align:center; margin-right:auto; width:25%;'><center>{df_data_html_holdings}</center></div>"""
     headers = {
         "message": "Landed on /frontpage."

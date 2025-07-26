@@ -57,7 +57,8 @@ class AuthData:
         all_symb_list = symbols_list
         info_collected = []
         error_symbols = []
-        for symbol in tqdm(all_symb_list[:100]):
+        for symbol in tqdm(all_symb_list):
+            time.sleep(2)
             nsepy_quote = nse_quote(symbol)
 
             if 'error' not in nsepy_quote.keys():
@@ -157,6 +158,18 @@ class FRONTPAGEDATA:
         data = db.read_questdb_req(readsql_query=sql)
         json_data = json.loads(data)
 
+        columnnames = [col_meta['name'] for col_meta in json_data['columns']]
+        df_data = pd.DataFrame(json_data['dataset'], columns=columnnames)
+
+        return df_data
+    
+    def latest_data(self):
+
+        sql = """SELECT max(timestamp) as latest_market_data_fetch from market_daily;"""
+        data = db.read_questdb_req(readsql_query=sql)
+        json_data = json.loads(data)
+        
+        
         columnnames = [col_meta['name'] for col_meta in json_data['columns']]
         df_data = pd.DataFrame(json_data['dataset'], columns=columnnames)
 

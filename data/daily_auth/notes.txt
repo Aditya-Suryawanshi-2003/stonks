@@ -6,3 +6,7 @@ Open points
 To Remember:
  - Start sessions_access_token to have a dummy access_token json. 
  Add a dummy json object if you have to create this file in trigger.py
+
+ Remarks:
+  - The nse api is not reliable, blocks requests a lot. Use it for about 250EQs for now then move to Kite
+  - 
