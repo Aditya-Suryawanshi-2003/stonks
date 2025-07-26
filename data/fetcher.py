@@ -5,7 +5,8 @@ Responsible for fetching asset and strategy data from database or external APIs.
 
 
 
-
+import time
+# from datetime import datetime
 import os, sys
 from typing import List, Dict, Optional
 
@@ -13,8 +14,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-
+from tqdm import tqdm
 from data import db
+# from kiteconnect import KiteConnect
+from nsepython import *
 
 # Placeholder for DB/API connection imports
 
@@ -22,33 +25,130 @@ class AuthData:
 
     def __init__(self, 
                  kc_instance: object):
-        self.init_aleert = 'obj_created'
+        self.init_alert = 'obj_init'
         self.kc_instance = kc_instance
     
-    def test_fetchdaily(self):
+    def test_profile(self):
+        """Fetches user profile data"""
+        return self.kc_instance.profile()
+    
+    def test_holdings(self):
+        """Fetches user holdings data"""
+        return self.kc_instance.holdings()
+    
+    def test_orders(self):
+        """Fetches user orders data"""
+        return self.kc_instance.orders()
+    
+    def test_quotes(self, instruments):
+        """Fetches real-time quotes for given instruments"""
+        return self.kc_instance.quote(instruments)
+    
+    def test_instruments(self):
+        """Fetches all available instruments data"""
+        return self.kc_instance.instruments()
+    
+    '''FREE NSEPI TO FETCH INDSUTRY AND QUOTES: 
+     - coverage of industry is good, 
+     - but not of close, 
+     - and batch fetch not available. averages 1.5-2s per symbol!''' 
+    def test_nsepy_quotes(self, symbols_list):
+        # data = nse_quote(symbol)
+        all_symb_list = symbols_list
+        info_collected = []
+        error_symbols = []
+        for symbol in tqdm(all_symb_list[:100]):
+            nsepy_quote = nse_quote(symbol)
 
-        profile = self.kc_instance.profile()
-        holdings = self.kc_instance.holdings()
-        orders = self.kc_instance.orders()
-        all_instruments = self.kc_instance.instruments()
+            if 'error' not in nsepy_quote.keys():
+                try:
+                    ind = nsepy_quote['info']['industry']
+                except:
+                    ind = None
+            
+                try:
+                    underlyingval = nsepy_quote['underlyingValue']
+                except:
+                    underlyingval = None
 
-        return profile
+                try:
+                    priceInfo = nsepy_quote['priceInfo']['close']
+                except:
+                    priceInfo = None
+                
+                daily_info = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), 
+                              "symbol": symbol, 
+                              "industry": ind, 
+                              "close": underlyingval or priceInfo}
+                
+                info_collected.append(daily_info)
+            else:
+                error_symbols.append(symbol)
+
+        return info_collected, error_symbols
+    
+    def test_nse_get_top_gainers(self):
+        data = nse_get_top_gainers()
+        return data
+    
+    def nse_corp_info(self):
+        import requests
+
+        # headers = {
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        #     "Accept-Language": "en-US,en;q=0.9",
+        #     "Referer": "https://www.nseindia.com/get-quotes/equity?symbol=ADANIENT",
+        #     "Origin": "https://www.nseindia.com",
+        # }
+
+        # session = requests.Session()
+        # session.headers.update(headers)
+
+        # Visit homepage first to get cookies
+        # test_resp = session.get("https://www.nseindia.com")
+        # print(test_resp.status_code)
+
+        # URL for corporate info JSON
+        # api_url = "https://www.nseindia.com/api/corporate-info?symbol=ADANIENT"
+        api_url = "https://www1.nseindia.com/homepage/peDetails.json'"
+        response = requests.get(api_url)
+        print(response)
+
+        return response
+
+    
+    # def test_positions(self):
+    #     """Fetches user positions data"""
+    #     return self.kc_instance.positions()
+    
+    # def test_trades(self):
+    #     """Fetches user trades data"""
+    #     return self.kc_instance.trades()
 
 class FRONTPAGEDATA:
 
-    def __init__(self, kc_instance: object):
+    def __init__(self):
         self.init_alert = 'obj_init'
-        self.kc_instance = kc_instance
 
     def test_kiteapi_call_holdings(self):
         holdings = self.kc_instance.holdings()
         return holdings
     
-    def test_questdb(self, sql = None, db_con = None, url = None, params = None):
-        # data = db.read_questdb(conn_str = db_con, sql = sql)
-        data = db.read_questdb_req(url, params)
+    def fetch_holdings(self):
+
+        frontpage_sql = """SELECT
+                    dl.*, nsmap.*
+                    from daily_holdings as dl
+                    left join nse_official_industry_map as nsmap on nsmap.basic_industry = dl.industry"""
+    
+        data = db.read_questdb_req(readsql_query=frontpage_sql)
+        json_data = json.loads(data)
         
-        return data
+        
+        columnnames = [col_meta['name'] for col_meta in json_data['columns']]
+        df_data = pd.DataFrame(json_data['dataset'], columns=columnnames)
+        
+        return df_data
 
         
 

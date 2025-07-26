@@ -1,6 +1,7 @@
 Open points
  - sesisons saved to local files. move to some cache db.
   - (stonks) C:\Machine Learning\stonks\data\daily_auth>uv run trigger.py # to start auth
+  - Kill the redirect to /data_fetch if /daily_auth accessed with valid access token : {kept open for testing}
 
 To Remember:
  - Start sessions_access_token to have a dummy access_token json. 

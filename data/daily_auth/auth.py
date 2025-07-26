@@ -7,7 +7,7 @@ import sys
 import os
 import webbrowser
 from datetime import datetime
-
+import pandas as pd
 
 # --- Configure Logging ---
 logging.basicConfig(level=logging.INFO,
@@ -23,10 +23,12 @@ sys.path.insert(0, project_root)
 
 # callbacks, load_session_from_file, save_session_to_file, validate_access_token
 import load_session_from_file, validate_access_token, initiate_kite_login, clear_invalid_session, process_kite_callbacks, save_session_to_file
-from data import fetcher
+from data import fetcher, db
 from kiteconnect import KiteConnect
 import config
 import pyotp
+import json
+from tqdm import tqdm
 
 totpsecret = config.CONFIG_AUTH.KITE_TOTP_SECRET
 kiteapikey = config.CONFIG_GLOBAL.KITE_API_KEY
@@ -88,7 +90,7 @@ async def daily_auth_route_handler(request: Request):
                 logger.info("valid access token, reidrect to /frontpage")
                 # since access_token is valid, initiate the callbacks to store data here
                 # Redirect to /frontpage route instead of returning HTMLResponse here
-                return RedirectResponse(url="/data_fetch", status_code=302)
+                return RedirectResponse(url="/frontpage", status_code=302)
                 # return HTMLResponse(status_code=200, content="<html><body>New Data Fetched! Try going to /frontpage</body></html>")
 
                 # since access_token is valid, initiate the callbacks to store data here
@@ -126,7 +128,7 @@ async def daily_auth_route_handler(request: Request):
 
 
 @app.get("/data_fetch")
-async def frontpage():
+async def datafetch():
 
     loaded_session = load_session_from_file.get_file(session_file_name)
     access_token = loaded_session["access_token"]
@@ -156,39 +158,55 @@ async def frontpage():
         frontpage_kc_instance.set_access_token(access_token)
 
         data_fetch = fetcher.AuthData(kc_instance=frontpage_kc_instance)
-        some_data = data_fetch.test_fetchdaily()
 
-        # # sql = "select * from xyz;"
-        # sql_query = "SELECT timestamp, symbol, price FROM trades limit 5;"
+        holdings = data_fetch.test_holdings()
+        all_intruments = data_fetch.test_instruments()
+        all_intruments = pd.DataFrame(all_intruments)
+        
 
-        # # Provide the query parameters
-        # params = {
-        #     "query": sql_query,
-        #     "fmt": "json"   # You can also use "csv"
-        # }
+        nse_eq = all_intruments[(all_intruments['instrument_type'] == 'EQ') &
+                                (all_intruments['exchange'] == 'NSE') &
+                                (all_intruments['segment'] == 'NSE')
+                                ]
+        
+        # all_symb_list = nse_eq['tradingsymbol'].tolist()
+        holdings_list = pd.DataFrame(holdings)['tradingsymbol'].tolist()
+        all_nse_eq = nse_eq['tradingsymbol'].tolist()
 
-        # some_data = data_fetch.test_questdb(url=req_conn_url, params=params)
-
-        # print(some_data)
-        return PlainTextResponse(f"data fetched: {some_data}")
-        # return RedirectResponse(url=f"/frontpage?message={"new_token_message"}", 
-        #                                                 status_code=303)
-        # return HTMLResponse(status_code=200,
-        #                     content=f"""
-        #                     <html>
-        #                         <head><title>Session Valid</title></head>
-        #                         <body>
-        #                             <h1>Kite Session Already Valid!</h1>
-        #                             <p>For user: <b>{loaded_session['kite_user_id']}</b>.</p>
-        #                             <p>Data fetching and strategy process initiated in the background.</p>
-        #                             <p>some fetched data: {some_data}</p>
-        #                             <p>You can close this page now.</p>
-                    
-        #                         </body>
-        #                     </html>
-        #                     """)
+        # Get HOLDINGS QUOTES
+        info, error_symbols = data_fetch.test_nsepy_quotes(holdings_list)
+        info_df = pd.DataFrame(info)
+        info_df['timestamp'] = pd.to_datetime(info_df['timestamp'])
+        info_df['close'] = pd.to_numeric(info_df['close'], errors='coerce').astype(float)
+        
+        resp = db.insert_dataframe_to_questdb(df=info_df,
+                                       table_name='daily_holdings',
+                                       timestamp_col='timestamp',
+                                       req_conn_url=req_conn_url)
+        
+        # ADD FOR FETCHING DAILY MARKET DATA HERE
+        
+        if resp[0]:
+            headers = {"message": "process completed. new data fetched and stored"}
+            return PlainTextResponse(headers=headers)
+        else:
+            logger.warning(f"full process not completed :/ {resp[1]}")
+            return PlainTextResponse(f"full process not completed :/: {resp[1]}")
     
 
+@app.get("/frontpage")
+async def frontpage():
+
+    data_fetcher = fetcher.FRONTPAGEDATA()
+    holdings_data = data_fetcher.fetch_holdings()
+    logger.info(f"data recvd: {holdings_data.head()}")
+
+    df_data_html = holdings_data.to_html(index=False)
+    html_content = f"<h3>this is static data</h3><div style='text-align:center; margin-right:auto; width:50%;'><center>{df_data_html}</center></div>"
+    headers = {
+        "message": "Landed on /frontpage."
+    }
+    return HTMLResponse(content=html_content, headers=headers)
 
 @app.get("/")
 async def root_route():
