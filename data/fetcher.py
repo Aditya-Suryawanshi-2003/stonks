@@ -149,6 +149,18 @@ class FRONTPAGEDATA:
         df_data = pd.DataFrame(json_data['dataset'], columns=columnnames)
         
         return df_data
+    
+    def fetch_market(self):
+        sql = f"""
+            select count(*) as market_data_count from market_daily;
+            """
+        data = db.read_questdb_req(readsql_query=sql)
+        json_data = json.loads(data)
+
+        columnnames = [col_meta['name'] for col_meta in json_data['columns']]
+        df_data = pd.DataFrame(json_data['dataset'], columns=columnnames)
+
+        return df_data
 
         
 

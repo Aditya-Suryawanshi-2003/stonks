@@ -20,7 +20,7 @@ sys.path.insert(0, project_root)
 
 import config
 
-
+# --- Configuration ---
 FASTAPI_BASE_URL = config.CONFIG_AUTH.FASTAPI_BASE_URL
 DAILY_AUTH_ENDPOINT = config.CONFIG_AUTH.DAILY_AUTH_ENDPOINT
 HEALTH_CHECK_ENDPOINT = config.CONFIG_AUTH.HEALTH_CHECK_ENDPOINT
@@ -28,17 +28,8 @@ FASTAPI_APP_PATH = config.CONFIG_AUTH.FASTAPI_APP_PATH
 FASTAPI_HOST = config.CONFIG_AUTH.FASTAPI_HOST
 FASTAPI_PORT = str(config.CONFIG_AUTH.FASTAPI_PORT)
 SESSION_FILE_NAME = config.CONFIG_AUTH.SESSION_FILE_NAME
-# --- Configuration ---
-# FASTAPI_HOST = "127.0.0.1"
-# FASTAPI_PORT = 5005
-# FASTAPI_BASE_URL = f"http://{FASTAPI_HOST}:{FASTAPI_PORT}"
-# DAILY_AUTH_ENDPOINT = f"{FASTAPI_BASE_URL}/daily_auth"
-# HEALTH_CHECK_ENDPOINT = f"{FASTAPI_BASE_URL}/" # A simple endpoint to check if server is alive
 
-# Path to your FastAPI main.py relative to the project root
-# Assuming trigger.py is in the 'stonks/' directory (project root)
-# and main.py is in 'stonks/data/daily_auth/'
-# FASTAPI_APP_PATH = "data.daily_auth.auth:app" 
+
 
 import initiate_kite_login, load_session_from_file, save_session_to_file
 # --- Functions ---
@@ -79,62 +70,7 @@ def start_fastapi_server(FASTAPI_APP_PATH, FASTAPI_HOST, FASTAPI_PORT):
     logger.info(f"FastAPI server process started with PID: {server_process.pid}")
     return server_process
 
-# def send_daily_auth_request(DAILY_AUTH_ENDPOINT: str, FASTAPI_BASE_URL: str, 
-#                             server_process, SESSION_FILE_NAME: str):
-#    """
-#     Sends the request to the /daily_auth endpoint and handles responses,
-#     including opening a browser for manual login if redirected to Kite.
-#     """
-#    session_token = load_session_from_file.get_file(SESSION_FILE_NAME=SESSION_FILE_NAME)
-#    logger.info(f"session_token: {session_token}")
-#    try:
-#         logger.info(f"Sending request to daily_auth endpoint: {DAILY_AUTH_ENDPOINT}")
-        
-#         # requests.get will automatically follow redirects by default (allow_redirects=True)
-#         # The final response.url will be the Kite login page if redirected,
-#         # or your FastAPI's page if it returned HTML directly.
-#         response = requests.get(DAILY_AUTH_ENDPOINT, params= session_token)
-#         response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
 
-#         logger.info(f"Request to /daily_auth successful. Final URL: {response.url}, Status: {response.status_code}")
-#         logger.info(f"Response content (first 500 chars):\n{response.text[:500]}...")
-
-#         # --- Logic to open browser based on the final URL and content ---
-
-#         # Scenario 1: FastAPI redirected to Kite login page (most common for new login)
-#         if "kite.zerodha.com/connect/login" in response.url:
-#             logger.info("Detected redirect to Kite login page. Opening browser for manual login.")
-#             webbrowser.open(response.url) # Open the actual Kite login URL
-        
-#         # Scenario 2: FastAPI returned its own HTML response (e.g., success, already valid, or error)
-#         # This happens if your FastAPI endpoint directly renders an HTML page
-#         # instead of redirecting to Kite.
-#         elif "text/html" in response.headers.get("Content-Type", ""):
-#             if "Kite Login Failed: Time Limit Exceeded or Invalid Token" in response.text:
-#                 logger.warning("Kite Login Failed: Manual intervention required (request_token expired).")
-#                 webbrowser.open(DAILY_AUTH_ENDPOINT) # Open your FastAPI's error page
-#             elif "Kite Login Successful!" in response.text:
-#                 logger.info("Kite Login Successful! Data operations initiated.")
-#                 webbrowser.open(DAILY_AUTH_ENDPOINT) # Open your FastAPI's success page
-#             elif "Kite Session Already Valid!" in response.text:
-#                 logger.info("Kite Session already valid. Data operations initiated.")
-#                 webbrowser.open(DAILY_AUTH_ENDPOINT) # Open your FastAPI's already valid page
-#             else:
-#                 logger.info("Received HTML response from FastAPI, but not a known login/status page. Opening for inspection.")
-#                 webbrowser.open(DAILY_AUTH_ENDPOINT) # Open the FastAPI URL to show its HTML
-        
-#         # Scenario 3: Unexpected response type (e.g., JSON if you didn't switch all responses to HTML)
-#         else:
-#             logger.info("Response is not an HTML page for login/status, nor a Kite redirect. Check logs and response content.")
-   
-#    except requests.exceptions.HTTPError as e:
-#     logger.error(f"HTTP Error sending request to /daily_auth: {e.response.status_code} - {e.response.text}")
-#     if e.response.status_code == 500:
-#         logger.error("Internal Server Error from FastAPI. Check FastAPI server logs for traceback.")
-#    except requests.exceptions.RequestException as e:
-#     logger.error(f"Network/Connection error sending request to /daily_auth: {e}")
-#    except Exception as e:
-#     logger.error(f"An unexpected error occurred during daily_auth request: {e}")
 
 # --- Main Logic ---
 if __name__ == "__main__":
@@ -165,14 +101,14 @@ if __name__ == "__main__":
         # 
         response = requests.get(DAILY_AUTH_ENDPOINT, params= loaded_session_data)
         print(f"response: {response.status_code}")
-        # print(f"sent to: {response.url};")
+        print(f"sent to: {response.url};")
         # print(f"response text/content if exists: {response.content}")
         print(f"headers: {response.headers.get('message')}")
-        print(f"complete auth with OTP in 30s. Server cloases after 30s")
+        print(f"complete auth with OTP in 120s. Server cloases after 120s")
 
 
-        print("waiting 40s to terminate")
-        time.sleep(40)
+        print("waiting 120s to terminate")
+        time.sleep(120)
         server_proc.terminate()
         time.sleep(5)
         print("terminated..")
@@ -186,6 +122,7 @@ if __name__ == "__main__":
         # 'is_permanent_redirect', 'is_redirect', 'iter_content', 'iter_lines', 'json', 'links', 'next', 'ok', 'raise_for_status',
         # 'raw', 'reason', 'request', 'status_code', 'text', 'url']
         # print(f"response text/content if exists: {response.content}")
+        print(f"sent to: {response.url};")
         print(f"headers: {response.headers.get('message')}")
         print(f"sent to: {response.url}; Check /daily_auth or /frontpage for latest client-side update")
         # for opt in options:

@@ -92,7 +92,7 @@ def del_questdb_req(delsql_query, req_url = req_url):
     '''Use TRUNCATE TABLE'''
     params = {
         "query": delsql_query,
-        "fmt": "json"   # You can also use "csv"
+        "fmt": "json"   
     }
     try:
         response = requests.get(url = req_url, 
@@ -101,7 +101,7 @@ def del_questdb_req(delsql_query, req_url = req_url):
         
         return response.json()
     except:
-        print("failed to run")
+        logger.warning("failed to run")
         return None
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     # }
 
     # create_table_with_columns(conn_str, 
-    #                           "nse_official_industry_map", 
+    #                           "market_daily", 
     #                           columns 
     #                         )
     
