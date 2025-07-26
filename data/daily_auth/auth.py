@@ -169,11 +169,10 @@ async def datafetch():
                                 (all_intruments['segment'] == 'NSE')
                                 ]
         
-        # all_symb_list = nse_eq['tradingsymbol'].tolist()
-        holdings_list = pd.DataFrame(holdings)['tradingsymbol'].tolist()
-        all_nse_eq = nse_eq['tradingsymbol'].tolist()
+        
 
         # Get HOLDINGS QUOTES
+        holdings_list = pd.DataFrame(holdings)['tradingsymbol'].tolist()
         info, error_symbols = data_fetch.test_nsepy_quotes(holdings_list)
         info_df = pd.DataFrame(info)
         info_df['timestamp'] = pd.to_datetime(info_df['timestamp'])
@@ -185,7 +184,10 @@ async def datafetch():
                                        req_conn_url=req_conn_url)
         
         # ADD FOR FETCHING DAILY MARKET DATA HERE
-        
+        all_nse_eq = nse_eq['tradingsymbol'].tolist()
+
+
+        # PREPRARING RESPONSES
         if resp[0]:
             headers = {"message": "process completed. new data fetched and stored"}
             return PlainTextResponse(headers=headers)
@@ -202,7 +204,7 @@ async def frontpage():
     logger.info(f"data recvd: {holdings_data.head()}")
 
     df_data_html = holdings_data.to_html(index=False)
-    html_content = f"<h3>this is static data</h3><div style='text-align:center; margin-right:auto; width:50%;'><center>{df_data_html}</center></div>"
+    html_content = f"<h3>this is static data</h3><div style='text-align:center; margin-right:auto; width:25%;'><center>{df_data_html}</center></div>"
     headers = {
         "message": "Landed on /frontpage."
     }
