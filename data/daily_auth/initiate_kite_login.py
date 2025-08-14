@@ -31,7 +31,7 @@ totpsecret = config.CONFIG_AUTH.KITE_TOTP_SECRET
 
 async def initiate(kc_instance: object) -> RedirectResponse:
     """Generates the Kite login URL and returns a redirect response."""
-    logger.info("initiating login with OTP!..")
+    logger.info("initiating login with OTP!.. COMPLETE WITHIN 30s!")
     totp = pyotp.TOTP(totpsecret)
     otp = totp.now()
     print(f"OTP!: {otp}")
@@ -39,6 +39,7 @@ async def initiate(kc_instance: object) -> RedirectResponse:
         login_url = kc_instance.login_url()
         logger.info(f"Redirecting to Kite login URL: {login_url}")
         webbrowser.open(login_url)
+        
         return RedirectResponse(url=login_url)
     except Exception as e:
         logger.error(f"Error generating login URL: {e}", exc_info=True)
