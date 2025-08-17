@@ -1,17 +1,27 @@
+import os, sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_dir, '..')
+sys.path.insert(0, project_root)
+
 import subprocess
+import threading
 import time
 import requests
 from services.base_service import ServiceManager
 
-class MCPServerManager(ServiceManager):
+import config
+
+
+class BrowserMCPServerManager(ServiceManager):
     """
     Manages the lifecycle of the MCP (Multi-Agent Communication Protocol) server.
     Inherits from ServiceManager to provide a standardized interface.
     """
     def __init__(self, port: int = 8089):
-        super().__init__("MCP Server")
+        super().__init__("BrowserMCP Server")
         self._port = port
-        self._health_check_url = f"http://localhost:{self._port}/health"
+        self.npm_path = config.CONFIG_SERVICES.NPM_PATH
 
     def start(self):
         """
@@ -26,48 +36,39 @@ class MCPServerManager(ServiceManager):
         try:
             # Start MCP server via npx with vision and port
             self._proc = subprocess.Popen(
-                [
-                    "npx", "@agent-infra/mcp-server-browser",
+                [   self.npm_path,
+                    # "npx", 
+                    "@agent-infra/mcp-server-browser",
                     "--port", str(self._port),
-                    "--vision"
+                    "--headless",
+                    # "--vision" 
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True, # Decode stdout/stderr as text
+                encoding='utf-8',
                 bufsize=1, # Line-buffered output
             )
             self._is_running = True
-            print(f"Process for {self.name} started (PID: {self._proc.pid}). Waiting for health check...")
 
-            # Optional: wait for server to become responsive
-            # Read stdout/stderr in a non-blocking way to see output while waiting
-            start_time = time.time()
-            timeout = 10 # seconds
-            server_ready = False
-            while time.time() - start_time < timeout:
-                try:
-                    # Check for "MCP server running" or similar output in stdout/stderr
-                    # This can be more robust for different server types
-                    # For MCP, the health endpoint is reliable.
-                    r = requests.get(self._health_check_url, timeout=1) # Short timeout for health check
-                    if r.status_code == 200:
-                        print(f"✅ {self.name} is running and responsive on {self._health_check_url}")
-                        server_ready = True
-                        break
-                except requests.ConnectionError:
-                    pass # Server not yet up, continue waiting
-                except requests.Timeout:
-                    pass # Health check timed out, server might be slow
-                time.sleep(0.5) # Wait before retrying
+            #Implementing Threads to flush out stdout PIPE (AI SLOP)
 
-            if not server_ready:
-                self.stop() # Attempt to clean up the process
-                # Read any remaining output for debugging
-                stdout, stderr = self._proc.communicate(timeout=1)
-                raise RuntimeError(
-                    f"{self.name} failed to start in time. "
-                    f"STDOUT:\n{stdout}\nSTDERR:\n{stderr}"
-                )
+            def print_stdout(proc):
+                print ('aight')
+                # for line in proc.stdout:
+                #     print(line, end='')
+
+            print(f"""Process for {self.name} started (PID: {self._proc.pid}); {print_stdout(self._proc)}""")
+            # Read the first N lines from stdout after starting
+            # max_lines = 10  # adjust as needed
+            # lines_read = 0
+            # while lines_read < max_lines:
+            #     line = self._proc.stdout.readline()
+            #     if not line:
+            #         break  # No more output
+            #     print(f"[MCP Server STDOUT]: {line.strip()}")
+            #     lines_read += 1
+
         except FileNotFoundError:
             self._is_running = False
             self._proc = None
@@ -101,3 +102,57 @@ class MCPServerManager(ServiceManager):
                 self._is_running = False
         else:
             print(f"{self.name} is not running.")
+
+if __name__ == '__main__':
+    # import os, sys
+    import asyncio
+
+
+    async def chat_loop():
+        """Run an interactive chat loop"""
+
+        # print("\nMCP Client Started!")
+        # print("Type your queries or 'quit' to exit.")
+
+        def flush_proc_output(proc):
+            # Continuously read from proc.stdout until EOF
+                while True:
+                    line = proc.stdout.readline()
+                    if not line:
+                        # EOF reached; subprocess probably exited
+                        break
+                    # To discard output, comment this out; to print logs, uncomment:
+                    print(line, end='')
+
+        def flush_proc_error(proc):
+            # Similarly for stderr
+            while True:
+                line = proc.stderr.readline()
+                if not line:
+                    break
+                # print(line, end='')  # or discard by commenting
+        
+        browsermcp = BrowserMCPServerManager()
+        browsermcp.start()
+
+        threading.Thread(target=flush_proc_output, args=(browsermcp._proc,), daemon=True).start()
+        threading.Thread(target=flush_proc_error, args=(browsermcp._proc,), daemon=True).start()
+
+        while True:
+            try:
+                query = input("\nType 'Quit' to stop server. Threading has begun: ").strip()
+                
+                if query.lower() == 'quit':
+                    browsermcp.stop()
+                    break
+                    
+                response = query
+                print(f"You Typed: {response}")
+                    
+            except Exception as e:
+                print(f"\nError: {str(e)}")
+    
+    asyncio.run(chat_loop())
+
+
+    pass

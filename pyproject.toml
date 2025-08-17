@@ -86,6 +86,9 @@ dependencies = [
     "psycopg[binary]>=3.2.9",
     "questdb[dataframe]>=3.0.0",
     "nsepython>=2.97",
+    "retry>=0.9.2",
+    "openpyxl>=3.1.5",
+    "xlwings>=0.33.15",
 ]
 
 # Optional dependencies for development, testing, etc.

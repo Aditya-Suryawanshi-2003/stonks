@@ -1,0 +1,26 @@
+{
+  "name": "stonks",
+  "version": "1.0.0",
+  "description": "QORE is a simple portfolio engine and research lab.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pratikchaudhari64/stonks.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pratikchaudhari64/stonks/issues"
+  },
+  "homepage": "https://github.com/pratikchaudhari64/stonks#readme",
+  "dependencies": {
+    "@agent-infra/mcp-server-browser": "^1.2.19"
+  }
+}

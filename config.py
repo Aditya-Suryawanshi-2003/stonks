@@ -49,17 +49,19 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 # Construct paths
 daily_auth_dotenv_path = os.path.join(project_root, "data", "daily_auth", ".env")
 db_auth_env = os.path.join(project_root, "data", ".env")
+services_env = os.path.join(project_root, "services", ".env")
 root_path = os.path.join(project_root, ".env")
 
 # Create the global config instance using the specific path
 CONFIG_AUTH = AppConfig(daily_auth_dotenv_path)
 CONFIG_GLOBAL = AppConfig(root_path) 
 CONFIG_GLOBAL_DB = AppConfig(db_auth_env) 
+CONFIG_SERVICES = AppConfig(services_env) 
 
 # print(dir(CONFIG_GLOBAL_DB))
 
 
-__all__ = ['CONFIG_AUTH', 'CONFIG_GLOBAL', 'CONFIG_GLOBAL_DB']
+__all__ = ['CONFIG_AUTH', 'CONFIG_GLOBAL', 'CONFIG_GLOBAL_DB', 'CONFIG_SERVICES']
 
 # You can still add properties for specific keys for better IDE autocompletion and type hinting
 # @property
