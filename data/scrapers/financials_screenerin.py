@@ -119,9 +119,54 @@ if __name__ == "__main__":
     import pandas as pd
     import xlwings as xl
     import time
+    from datetime import datetime
 
-    symbols = ['DEVYANI', 'HDFCBANK']
+    symbols = ['DEVYANI', 'ITC', 'HDFCBANK']
     scraped_data = Scrape(symbols)
-    bl_json = scraped_data['HDFCBANK']['Profit & Loss'].to_json()
-    print(json.loads(bl_json).keys())
-    print(scraped_data['HDFCBANK']['Profit & Loss'].columns)
+    
+    transf_scraped_data = []
+    for stock_data in scraped_data.keys():
+
+        pnl = scraped_data[stock_data]['Profit & Loss'].set_index('Narration')
+        pnl = pnl[~pnl.index.duplicated(keep=False)]
+        pnl_json = pnl.to_json()
+
+        bl = scraped_data[stock_data]['Balance Sheet'].set_index('Narration')
+        bl = bl[~bl.index.duplicated(keep=False)]
+        bl_json = bl.to_json()
+
+        cf = scraped_data[stock_data]['Cash Flow'].set_index('Narration')
+        cf = cf[~cf.index.duplicated(keep=False)]
+        cf_json = cf.to_json()
+
+        all_keys = set(json.loads(bl_json).keys()).union(json.loads(pnl_json).keys(), json.loads(cf_json).keys())
+        common_ts_keys = [key for key in all_keys if isinstance(key, str) and key.isdigit() and datetime.fromtimestamp(int(key) / 1000)]
+        
+
+        for key in common_ts_keys:
+            ts = int(key)
+            data_row = {
+                'time_period_ts': datetime.fromtimestamp(ts / 1000),
+                'stock_ticker': stock_data,
+                'pnl': json.dumps(json.loads(pnl_json).get(key, None)),
+                'balance_sheet': json.dumps(json.loads(bl_json).get(key, None)),
+                'cash_flows': json.dumps(json.loads(cf_json).get(key, None))
+            }
+
+            # print(data_row)
+            transf_scraped_data.append(data_row)
+    
+    transf_scraped_data_df = pd.DataFrame(transf_scraped_data)
+    print(transf_scraped_data_df.head(5))
+
+    from data import db
+    from stonks import config
+
+    req_conn_url = config.CONFIG_GLOBAL_DB.REQ_CONN_URL
+
+    resp, err = db.insert_dataframe_to_questdb(df=transf_scraped_data_df,
+                                            table_name='financial_statements',
+                                            timestamp_col='time_period_ts',
+                                            req_conn_url=req_conn_url)
+    
+    print(resp, err)

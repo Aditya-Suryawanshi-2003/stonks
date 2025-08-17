@@ -107,6 +107,9 @@ if __name__ == "__main__":
             Return a properly formatted JSON array ready for use in Python or JavaScript. 
             Return ONLY the JSON data. Do NOT include any explanations, text, or introductions or the code to fetch it
             """
+        # text_query = f"""go to https://pulse.zerodha.com/ and summarise the articles"""
+        # text_query = f"""go to https://groww.in/stocks/jsw-cement-ltd/market-news and summarise the latest news"""
+        # text_query = f"go to https://www.google.com/search?q=ITC+latest+news, then click on the links about articles that have news on the stock and return summary"
         
         resp = asyncio.run(use_client_on_broswermcp(text_query = text_query))
         print(resp)

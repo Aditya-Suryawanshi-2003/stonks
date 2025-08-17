@@ -117,7 +117,7 @@ def create_table_with_columns(conn_str: str, table_name: str,
     sql = f"""
     CREATE TABLE IF NOT EXISTS {table_name} (
       {cols_str}
-    ) TIMESTAMP (timestamp) PARTITION BY DAY WAL;
+    ) TIMESTAMP (time_period_ts) PARTITION BY DAY WAL; 
     """
     print(conn_str)
     print(sql)
@@ -128,6 +128,19 @@ def create_table_with_columns(conn_str: str, table_name: str,
     print(f"Table '{table_name}' created or already exists.")
 
 if __name__ == "__main__":
+
+    # columns_for_financials_table = {
+    #     "time_period_ts": "TIMESTAMP",  # This will be your designated timestamp column
+    #     "stock_ticker": "SYMBOL",
+    #     "pnl": "STRING",
+    #     "balance_sheet": "STRING",
+    #     "cash_flows": "STRING"
+    # }
+    # create_table_with_columns(
+    #         conn_str=conn_str,
+    #         table_name='financial_statements',
+    #         columns=columns_for_financials_table
+    #     )
     
     # columns = {"timestamp": "TIMESTAMP", 
     #            "symbol": "SYMBOL", 
