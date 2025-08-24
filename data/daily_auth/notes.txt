@@ -9,4 +9,19 @@ To Remember:
 
  Remarks:
   - The nse api is not reliable, blocks requests a lot. Use it for about 250EQs for now then move to Kite
-  - 
+
+Daily auth
+ - Validates KITE API key,
+  - Uses LLM to automatically input OTP on the browser
+ - Fetches:
+  - Portfolio holdings,
+  - Portfolio orders,
+  - Daily quotes for full market
+
+Market Daily Holdings:
+ - Use yfinance for one-time historical data fill
+ - Use Kite API quote endpoint to fetch daily once daily auth is set up
+
+
+Portfolio
+ - store portoflio states
