@@ -11,6 +11,7 @@ import uuid
 from io import BytesIO
 import pandas as pd
 import xlwings as xl
+from tqdm import tqdm
 
 
 # logging.basicConfig(filename='log.txt', filemode='a',format='%(asctime)s - %(message)s', level=logging.DEBUG)
@@ -76,11 +77,11 @@ def getData(warehouseid,symbol,PATH):
     return read_df
     
 
-def Scrape(symbols,PATH = None,delay=0):
+def Scrape(symbols,PATH = None,delay=0.2):
     data = []
     exported_data = {}
     rexp = 'formaction=.\/user\/company\/export/([0-9]+)\/.'
-    for symbol in symbols:
+    for symbol in tqdm(symbols):
         api = "https://www.screener.in/api/company/search/?q=" + symbol    
         logging.info("Getting: " + api)
         try:
@@ -97,35 +98,46 @@ def Scrape(symbols,PATH = None,delay=0):
             exported_data[symbol] = data_df
         except:
             print("Error: " + api)
-            logging.ERROR(api)
+            logging.error(api)
         sleep(delay)
     
     return exported_data
-    # ExportLinks(data)
-
-# def ExportLinks(data):   
-#     with open("links.csv","w",newline="") as f:  
-#         title = "id,name,url,warehouse".split(",")
-#         cw = csv.DictWriter(f,title,delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-#         cw.writeheader()
-#         cw.writerows(data)
-
-# print("Finished.")
 
 
 
 if __name__ == "__main__":
-    from io import BytesIO
+
+    import os, sys
     import pandas as pd
+    from io import BytesIO
     import xlwings as xl
     import time
     from datetime import datetime
+    from tqdm import tqdm
 
-    symbols = ['DEVYANI', 'ITC', 'HDFCBANK']
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.join(current_dir, '..', '..')
+    sys.path.insert(0, project_root)
+    
+    from kiteconnect import KiteConnect
+    import config
+    from data import fetcher
+    from data import db
+
+
+    kiteapikey = config.CONFIG_GLOBAL.KITE_API_KEY
+
+    kc_instance = KiteConnect(api_key=kiteapikey)
+
+    kitedata = fetcher.AuthData(kc_instance=kc_instance)
+    all_instruments = pd.DataFrame(kitedata.test_instruments())
+    
+    symbols = all_instruments[all_instruments['instrument_type'] == 'EQ']['tradingsymbol'].head(300).tolist()
     scraped_data = Scrape(symbols)
     
+    
     transf_scraped_data = []
-    for stock_data in scraped_data.keys():
+    for stock_data in tqdm(scraped_data.keys()):
 
         pnl = scraped_data[stock_data]['Profit & Loss'].set_index('Narration')
         pnl = pnl[~pnl.index.duplicated(keep=False)]
@@ -153,14 +165,10 @@ if __name__ == "__main__":
                 'cash_flows': json.dumps(json.loads(cf_json).get(key, None))
             }
 
-            # print(data_row)
             transf_scraped_data.append(data_row)
     
     transf_scraped_data_df = pd.DataFrame(transf_scraped_data)
-    print(transf_scraped_data_df.head(5))
-
-    from data import db
-    from stonks import config
+    print(transf_scraped_data_df.shape)
 
     req_conn_url = config.CONFIG_GLOBAL_DB.REQ_CONN_URL
 
