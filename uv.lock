@@ -592,6 +592,21 @@ wheels = [
 ]
 
 [[package]]
+name = "dhanhq"
+version = "2.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+    { name = "pyopenssl" },
+    { name = "requests" },
+    { name = "websockets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/53/b4989f54007ca26265dbd7a0b20515391d8184ab00cbbaa31db163a633e2/dhanhq-2.0.2.tar.gz", hash = "sha256:ed8a10dc436c8124cba53e9dcb9093317b10909c8acd0b65195ba9319eaf46ca", size = 21375 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7d/99/824a8194cc1e3f6f593af2617d9552a3f384153ba4e6dc4a04474a180a09/dhanhq-2.0.2-py3-none-any.whl", hash = "sha256:cb3e4692eab40ca02e6721361e7dab6d1b8c339a5230a3b796271d6905228973", size = 18256 },
+]
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3405,6 +3420,7 @@ dependencies = [
     { name = "coloredlogs" },
     { name = "cowsay" },
     { name = "dataclasses-json" },
+    { name = "dhanhq" },
     { name = "durationpy" },
     { name = "fastapi" },
     { name = "flask" },
@@ -3483,6 +3499,7 @@ requires-dist = [
     { name = "coloredlogs" },
     { name = "cowsay", specifier = ">=6.1" },
     { name = "dataclasses-json" },
+    { name = "dhanhq", specifier = ">=2.0.2" },
     { name = "durationpy" },
     { name = "fastapi", specifier = ">=0.116.1" },
     { name = "flask" },
