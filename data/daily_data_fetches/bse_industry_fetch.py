@@ -30,6 +30,7 @@ import config
 import json
 from tqdm import tqdm
 from nsepython import *
+from bsedata.bse import BSE
 
 
 totpsecret = config.CONFIG_AUTH.KITE_TOTP_SECRET
@@ -44,7 +45,8 @@ kitepwd = config.CONFIG_AUTH.KITEPWD
 dhandataapi_access_token = config.CONFIG_GLOBAL.DHAN_DATA_API_ACCESS_TOKEN
 dhan_clientid = config.CONFIG_GLOBAL.DHAN_CLIENTID
 
-def _get_industry_type():
+
+def get_all_instruments():
     kite = KiteConnect(api_key=kiteapikey)
     
     with open(os.path.join(project_root, 'data', 'daily_auth', session_file_name), 'rb') as f:
@@ -54,26 +56,21 @@ def _get_industry_type():
     kiteall_instr = pd.DataFrame(kite.instruments())
     kite_eq_instr = kiteall_instr[kiteall_instr['instrument_type'] == 'EQ']
 
-    symbols = kite_eq_instr['tradingsymbol'].tolist()
-    # for symbol in symbols:
-    #     nsedata = nse_quote(symbol)
-    # nsepy_data = fetcher.AuthData(kc_instance=kite)
-    # nsepy_data, error_symbols = nsepy_data.test_nsepy_quotes(symbols_list=symbols[200:250])
+    return kite_eq_instr
 
-    # return pd.DataFrame(nsepy_data)
-    return symbols
+if __name__ == '__main__':
+    
+    all_EQ_kite_instr = get_all_instruments()
+    BSE_instruments = all_EQ_kite_instr[all_EQ_kite_instr['exchange'] == 'BSE']
+    BSE_instrument_scripcodes = BSE_instruments['exchange_token'].tolist()
+    
+    b = BSE()
+    
+    b = BSE(update_codes = True)
 
-if __name__ == "__main__":
-
-    df = _get_industry_type()
-    nsedata = {}
-    for symbol in tqdm(df[200:300]):
+    for code in tqdm(BSE_instrument_scripcodes[200:300]):
         try:
-            nsedata[symbol] = nse_quote(symbol)
+            q = b.getQuote(code)
+            print(q['industry'])
         except Exception as e:
-            print(f"error for {symbol}. Error: {e}")
-    
-    for keysymbol in nsedata.keys():
-        if 'error' in nsedata[keysymbol].keys():
-            print(f"symbol: {keysymbol}; error: {nsedata[keysymbol]['error']}; message: {nsedata[keysymbol]['message']}")
-    
+            print(f"Error {e} for {code}")

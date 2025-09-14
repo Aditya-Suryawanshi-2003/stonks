@@ -102,3 +102,4 @@ if __name__ == '__main__':
     #Dhan API: robust for all historical OHLC data; Currently handles Equity, need to figure out Indexes. 
     # Does not have industry. Rely on nsepy for industry code
     all_eq_hist_df = all_eq_hist_data()
+    print(all_eq_hist_df)
